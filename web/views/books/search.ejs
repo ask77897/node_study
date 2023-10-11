@@ -1,0 +1,90 @@
+<div class="row my-5">
+    <div class="col">
+        <h1 class="text-center mb-5">도서검색</h1>
+        <!--검색어 입력-->
+        <div class="row justify-content-end">
+            <form name="frm" class="col-md-4">
+                <div class="input-group">
+                    <input name="query" class="form-control">
+                    <button class="btn btn-primary">검색</button>
+                </div>
+            </form>
+        </div>
+        <hr>
+        <!--도서검색결과출력-->
+        <div id="div_books"></div>
+        <!--페이지 이동-->
+        <div class="text-center">
+            <button id="prev" class="btn btn-primary">이전</button>
+            <span id="span_page">1/10</span>
+            <button id="next" class="btn btn-primary">다음</button>
+        </div>
+    </div>
+</div>
+<!--도서검색템플릿-->
+<script id="temp_books" type="x-handlebars-template">
+    <table class="table table-hover">
+    {{#each documents}}
+        <tr>
+            <td><img src="{{isImage thumbnail}}" width="50"></td>
+            <td>{{title}}</td>
+            <td>{{price}}</td>
+        </tr>
+    {{/each}}
+    </table>
+</script>
+<script>
+    //이미지 유무 체크
+    Handlebars.registerHelper("isImage", function(image){
+        if(image){
+            return image;
+        }else{
+            return "http://via.placeholder.com/170x250";
+        }
+    });
+</script>
+<script>
+    let query="노드";
+    let page=1;
+    getBooks();
+    //다음버튼 클릭할 경우
+    $("#next").on("click", function(){
+        page++;
+        getBooks();
+    });
+    //이전버튼 클릭할 경우
+    $("#prev").on("click", function(){
+        page--;
+        getBooks();
+    });
+    //폼이 서밋될때
+    $(frm).on("submit", function(e){
+        e.preventDefault();
+        query=$(frm.query).val();
+        //alert(query);
+        page=1;
+        getBooks();
+    });
+
+    function getBooks(){
+        $.ajax({
+            type:"get",
+            headers:{"Authorization":"KakaoAK d27ccec046d9726791715798429e0d53"},
+            url:"https://dapi.kakao.com/v3/search/book?target=title",
+            data:{query:query, page:page, size:5},
+            success:function(data){
+                console.log(data);
+                const temp=Handlebars.compile($("#temp_books").html());
+                $('#div_books').html(temp(data));
+                const last=Math.ceil(data.meta.pageable_count/5);
+                $("#span_page").html(`${page}/${last}`);
+
+                if(page==1) $("#prev").attr("disabled", true);
+                else $("#prev").attr("disabled", false);
+
+                if(data.meta.is_end) $("#next").attr("disabled", true);
+                else $("#next").attr("disabled", false);
+            }
+        });
+    }
+</script>
