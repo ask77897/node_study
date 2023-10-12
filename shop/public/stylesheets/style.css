@@ -27,3 +27,5 @@ form span{
   width:100px;
   justify-content: center;
 }
+
+.photo {border-radius: 50%; border: 2px solid gray;}
