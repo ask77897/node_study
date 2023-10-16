@@ -1,0 +1,201 @@
+<style>
+    .page-link{
+        color: #6f42c1;
+    }
+    .page-link:hover{
+        color: #6e42c1b8;
+    }
+    .page-item.active .page-link{
+        color:#fff;
+        background-color: #6f42c1;
+        border-color: #6e42c1b8;
+    }
+</style>
+<div class="my-5">
+    <h1 class="text-center mb-5">도서 목록</h1>
+    <div class="row">
+        <form name="frm" class="col-md-6">
+            <div class="input-group">
+                <select name="key" class="for-select">
+                    <option value="title">제목</option>
+                    <option value="authors">저자</option>
+                    <option value="publisher">출판사</option>
+                    <option value="contents">내용</option>
+                </select>
+                <input name="query" class="form-control" placeholder="검색어">
+                <button class="btn" style="background-color: #6f42c1; color:#fff;">검색</button>
+            </div>
+        </form>
+        <div class="col text-end">
+            전체 도서 수 : <span id="total"></span>
+        </div>
+    </div>
+    <div id="div_books"></div>
+    <div id="pagination" class="pagination justify-content-center mt-5"></div>
+</div>
+<!--도서 목록 템플릿-->
+<script type="x-handlebars-template" id="temp_books">
+    <table class="table">
+        <tr>
+            <td colspan="7">
+                <input id="all" type="checkbox">
+                <button class="btn btn-danger btn-sm ms-3 sel-delete">선택삭제</button>
+            </td>
+        </tr>
+        {{#each .}}
+            <tr>
+                <td><input type="checkbox" class="chk" bid="{{bid}}"></td>
+                <td><img src="{{isImage image}}" width="30px"></td>
+                <td width="5%">{{bid}}</td>
+                <td width="30%">
+                    <div class="ellipsis">
+                        <a href="/books/read?bid={{bid}}">{{title}}</a>
+                    </div>
+                </td>
+                <td width="5%">{{price}}</td>
+                <td width="15%">{{authors}}</td>
+                <td width="35%"><div class="ellipsis">{{contents}}</div></td>
+                <td><button bid="{{bid}}" class="btn btn-danger btn-sm btn-delete">삭제</button></td>
+            </tr>
+        {{/each}}
+    </table>
+</script>
+<script>
+    Handlebars.registerHelper("isImage", function(image){
+        if(image){
+            return image;
+        }else{
+            return "http://via.placeholder.com/170x230";
+        }
+    })
+</script>
+<script>
+    let page=1;
+    getTotal();
+
+    //폼이 서밋인 경우
+    $(frm).on("submit", function(e){
+        e.preventDefault();
+        page=1;
+        getTotal();
+    })
+    //선택 삭제 클릭했을 때
+    $("#div_books").on("click", ".sel-delete", function(){
+        //alert("..")
+        const chk=$("#div_books .chk:checked").length;
+        if(chk==0){
+            alert("삭제할 도서를 선택하세요.")
+            return;
+        }
+        if(!confirm(`${chk}개 도서를 삭제하시겠습니까?`)){return;}
+        $("#div_books .chk:checked").each(function(){
+            const bid=$(this).attr("bid");
+            //alert(bid)
+            $.ajax({
+                type:'post',
+                url:'/books/delete',
+                data:{bid},
+                success:function(){
+                    getTotal();
+                }
+            });
+        });
+
+    });
+    //선택 삭제
+    $("#div_books").on("click", "#all", function(){
+        //alert("..")
+        if($(this).is(":checked")){
+            $("#div_books .chk").prop("checked", true);
+        }else{
+            $("#div_books .chk").prop("checked", false);
+        }
+    })
+    //각행의 체크박스를 클릭한 경우
+    $("#div_books").on("click", ".chk", function(){
+        const all=$("#div_books .chk").length;
+        const chk=$("#div_books .chk:checked").length;
+        //alert(all + "," + chk);
+        if(all==chk){
+            $("#div_books #all").prop("checked", true);
+        }else{
+            $("#div_books #all").prop("checked", false);
+        }
+    })
+    //각행의 삭제버튼을 클릭한 경우
+    $("#div_books").on("click", ".btn-delete", function(){
+        //alert("삭제");
+        const bid=$(this).attr("bid");
+        //alert(bid);
+        if(!confirm(bid+"번 도서를 삭제하시겠습니까?")){
+            return;
+        }
+        $.ajax({
+            type:'post',
+            url:'/books/delete',
+            data:{bid:bid},
+            success:function(){
+                alert("도서가 삭제되었습니다.")
+                getTotal();
+            }
+        })
+    });
+
+    function getTotal(){
+        const key=$(frm.key).val();
+        const query=$(frm.query).val();
+        $.ajax({
+            type:'get',
+            url:'/books/count',
+            data:{key, query},
+            success:function(data){
+                $("#total").html(data.total+'권');
+                if(data.total>0){
+                    //alert(data.total);
+                    const totalPages=Math.ceil(data.total/5);
+                    //alert(totalPages);
+                    $("#pagination").twbsPagination("changeTotalPages", totalPages, page)
+                }else{
+                    alert("검색 내용이 없습니다.");
+                    $(frm.query).val("");
+                    getTotal();
+                }
+            }
+        })
+    }
+    function getBooks(){
+        const key=$(frm.key).val();
+        const query=$(frm.query).val();
+        //alert(key + query);
+        $.ajax({
+            type:'get',
+            url:'/books/list.json',
+            data:{page, key, query},
+            success:function(data){
+                //console.log(data);
+                const temp=Handlebars.compile($("#temp_books").html());
+                $("#div_books").html(temp(data));
+            }
+        })
+    }
+    
+    $('#pagination').twbsPagination({
+        totalPages: 10, //총 페이지 번호 수
+        visiblePages: 5, // 하단에서 한 번에 보여 지는 페이지 번호 수
+        startPage : 1, // 시작 시 표시되는 현재 페이지
+        initiateStartPageClick: false, // 플러그인이 시작 시 페이지 버튼 클릭 여부 (default : true)
+        first : '<i class="bi bi-chevron-double-left"></i>', // 페이지네이션 버튼 중 처음으로 돌아가는 버튼에 쓰여 있는 텍스트
+        prev : '<i class="bi bi-chevron-left"></i>', // 이전 페이지 버튼에 쓰여 있는 텍스트
+        next : '<i class="bi bi-chevron-right"></i>', // 다음 페이지 버튼에 쓰여 있는 텍스트
+        last : '<i class="bi bi-chevron-double-right"></i>', // 페이지네이션 버튼 중 마지막으로 가는 버튼에 쓰여 있는 텍스트
+        pageClass : "page-item",	// 페이지 버튼의 CSS class
+        activeClass : "active",	// 클릭된 페이지 버튼의 CSS class
+        disabledClass : "disabled",	// 클릭 안된 페이지 버튼의 CSS class
+        anchorClass : "page-link",	//버튼 안의 앵커에 대한 CSS class
+        onPageClick: function (event, clickPage) {
+            page=clickPage;
+            getBooks(); 
+        }
+    });
+    
+</script>

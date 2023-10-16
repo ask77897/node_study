@@ -13,7 +13,7 @@
         <div class="input-group mb-1">
             <span class="input-group-text">주소</span>
             <input name="address1" class="form-control" value="<%=user.address1%>">
-            <button id="search" class="btn btn-primary" type="button">주소검색</button>
+            <button id="search" class="btn" style="background-color:#6f42c1; color:#fff;" type="button">주소검색</button>
         </div>
         <div>
             <input name="address2" class="form-control" placeholder="상세주소" value="<%=user.address2%>">
@@ -25,28 +25,26 @@
             <input name="photo" value="<%=user.photo%>" type="hidden">
         </div>
         <div class="text-center my-3">
-            <button class="btn btn-primary">수정</button>
+            <button class="btn" style="background-color:#6f42c1; color:#fff;">수정</button>
             <button class="btn btn-secondary" type="reset">취소</button>
         </div>
     </form>
 </div>
 <script>
+    //사진 출력
     const photo="<%=user.photo%>";
-    if(photo) {
+    if(photo){
         $("#photo").attr("src", "/upload/photo/"+photo);
     }else{
         $("#photo").attr("src", "http://via.placeholder.com/150x150");
     }
     //수정버튼을 눌렀을 때
-    $(frm).on('submit', function(e){
+    $(frm).on("submit", function(e){
         e.preventDefault();
-        const uid=$(frm.uid).val();
-        const uname=$(frm.uname).val();
-        const phone=$(frm.phone).val();
-        const address1=$(frm.address1).val();
-        const address2=$(frm.address2).val();
-        if(confirm("변경된 내용을 저장하시겠습니까?")) frm.submit();
-    });
+        if(confirm("수정한 내용을 저장하시겠습니까?")){
+            frm.submit();
+        }
+    })
     //주소검색
     $("#search").on("click", function(){
         new daum.Postcode({
@@ -61,6 +59,6 @@
     });
     //파일이 바뀌었을 때 미리보기 출력
     $(frm.file).on("change", function(e){
-        $('#photo').attr("src", URL.createObjectURL(e.target.files[0]));
+        $("#photo").attr("src", URL.createObjectURL(e.target.files[0]));
     });
 </script>

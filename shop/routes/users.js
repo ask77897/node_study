@@ -99,12 +99,11 @@ router.post('/update', upload.single('file'), function(req, res){
   const address2=req.body.address2;
   let photo=req.body.photo;
   if(req.file) photo=req.file.filename;
-  // console.log(photo);
-  // console.log(uid, uname, phone, address1, address2);
   const sql='update users set uname=?, phone=?, address1=?, address2=?, photo=? where uid=?';
   db.get().query(sql, [uname, phone, address1, address2, photo, uid], function(err, rows){
     if(err) console.log(err);
     res.redirect('/users/mypage?uid='+uid);
+    // res.sendStatus(200); ajax로 했을 때
   });
 });
 
