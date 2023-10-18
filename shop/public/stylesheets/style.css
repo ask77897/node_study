@@ -17,6 +17,13 @@
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
 }
+.ellipsis2 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
 
 form span{
   width:100px;
@@ -25,6 +32,10 @@ form span{
 
 .photo {border-radius: 50%; border: 2px solid gray;}
 
-.bttn{
-  background-color: #6f42c1;
+.like{
+  color: #6f42c1;
+  cursor: pointer;
+}
+.count{
+  font-size: 0.7rem;
 }

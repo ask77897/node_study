@@ -1,3 +1,159 @@
+<style>
+    .page-link{
+        color: #6f42c1;
+    }
+    .page-link:hover{
+        color: #6e42c1b8;
+    }
+    .page-item.active .page-link{
+        color:#fff;
+        background-color: #6f42c1;
+        border-color: #6e42c1b8;
+    }
+</style>
 <div class="my-5">
-    <h1 class="text-center">홈페이지입니다.</h1>
+    <div class="row mb-3 justify-content-end">
+        <form name="frm" class="col-md-4">
+            <div class="input-group">
+                <input name="query" class="form-control" placeholder="검색어">
+                <button class="btn" style="background-color:#6f42c1; color:#fff;">검색</button>
+            </div>
+        </form>
+        <div class="col pt-2">
+            <span id="total">0권</span>
+        </div>
+    </div>
+    <div id="div_books" class="row"></div>
+    <div id="pagination" class="pagination justify-content-center mt-5"></div>
 </div>
+<script id="temp_books" type="x-handlebars-template">
+    {{#each .}}
+        <div class="col-md-4 col-lg-2 col-6">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <a href="/books/info?bid={{bid}}"><img src="{{isImage image}}" width="90%"></a>
+                    <div class="ellipsis mt-2">{{title}}</div>
+                    <div class="ellipsis mt-2">{{authors}}</div>
+                </div>
+                <div class="card-footer">
+                    <span style="font-size:0.7rem;">{{fmtPrice price}}</span>
+                    <span class="float-end">
+                        <i class="bi {{heart ucnt}} like" bid={{bid}}></i>
+                        <span class="count">{{fcnt}}</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    {{/each}}
+</script>
+<script>
+    Handlebars.registerHelper("isImage", function(image){
+        if(image){
+            return image;
+        }else{
+            return "http://via.placeholder.com/170x230";
+        }
+    })
+    Handlebars.registerHelper("fmtPrice", function(price){
+        return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "원" 
+    })
+    Handlebars.registerHelper('heart', function(ucnt){
+        if(ucnt==1){
+            return "bi-bookmark-heart-fill";
+        }else{
+            return "bi-bookmark-heart";
+        }
+    })
+</script>
+<script>
+    let page=1;
+    getTotal();
+    $(frm).on("submit", function(e){
+        e.preventDefault();
+        page=1;
+        getTotal();
+    })
+    function getTotal(){
+        $.ajax({
+            type:'get',
+            url:'/count',
+            data:{query:$(frm.query).val()},
+            success:function(data){
+                if(data==0){
+                    alert("검색 도서가 없습니다.");
+                    $(frm.query).val("");
+                    getTotal();
+                }else{
+                    $("#total").html(data+'권');
+                    const totalPages=Math.ceil(data/6);
+                    $("#pagination").twbsPagination("changeTotalPages", totalPages, page)
+                    //alert(data.total);
+                    //alert(totalPages);
+                }
+            }
+        });
+    }
+    function getBooks(){
+        $.ajax({
+            type:'get',
+            url:'/books.json',
+            data:{page, query:$(frm.query).val(), uid:sessionStorage.getItem("uid")},
+            success:function(data){
+                //console.log(data);
+                const temp=Handlebars.compile($("#temp_books").html());
+                $("#div_books").html(temp(data));
+            }
+        });
+    }
+    $('#pagination').twbsPagination({
+        totalPages: 10, //총 페이지 번호 수
+        visiblePages: 5, // 하단에서 한 번에 보여 지는 페이지 번호 수
+        startPage : 1, // 시작 시 표시되는 현재 페이지
+        initiateStartPageClick: false, // 플러그인이 시작 시 페이지 버튼 클릭 여부 (default : true)
+        first : '<i class="bi bi-chevron-double-left"></i>', // 페이지네이션 버튼 중 처음으로 돌아가는 버튼에 쓰여 있는 텍스트
+        prev : '<i class="bi bi-chevron-left"></i>', // 이전 페이지 버튼에 쓰여 있는 텍스트
+        next : '<i class="bi bi-chevron-right"></i>', // 다음 페이지 버튼에 쓰여 있는 텍스트
+        last : '<i class="bi bi-chevron-double-right"></i>', // 페이지네이션 버튼 중 마지막으로 가는 버튼에 쓰여 있는 텍스트
+        pageClass : "page-item",	// 페이지 버튼의 CSS class
+        activeClass : "active",	// 클릭된 페이지 버튼의 CSS class
+        disabledClass : "disabled",	// 클릭 안된 페이지 버튼의 CSS class
+        anchorClass : "page-link",	//버튼 안의 앵커에 대한 CSS class
+        onPageClick: function (event, clickPage) {
+            page=clickPage;
+            getBooks(); 
+        }
+    });
+    //좋아요 추가
+    $("#div_books").on("click", ".bi-bookmark-heart", function(){
+        //alert("..")
+        if(!sessionStorage.getItem("uid")){
+            alert("로그인 후 이용해주세요.");
+            location.href="/users/login";
+        }else{
+            const bid=$(this).attr("bid");
+            //alert(bid);
+            $.ajax({
+                type:'post',
+                url:'/books/like/insert',
+                data:{uid:sessionStorage.getItem("uid"), bid},
+                success:function(){
+                    alert("좋아요 추가");
+                    getTotal();
+                }
+            });
+        }
+    });
+    //좋아요 취소
+    $("#div_books").on("click", ".bi-bookmark-heart-fill", function(){
+        const bid=$(this).attr("bid");
+        $.ajax({
+            type:'get',
+            url:'/books/like/delete',
+            data:{uid:sessionStorage.getItem("uid"), bid},
+            success:function(){
+                alert("좋아요 취소");
+                getTotal();
+            }
+        });
+    })
+</script>

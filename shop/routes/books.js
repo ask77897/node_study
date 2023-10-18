@@ -20,6 +20,7 @@ var upload = multer({
 router.get('/', function(req, res, next) {
   res.render('index', {title:'도서 검색', pageName:'books/search.ejs'})
 });
+
 //도서 검색 결과 저장
 router.post('/search/insert', function(req, res){
   const title=req.body.title;
@@ -37,7 +38,7 @@ router.post('/search/insert', function(req, res){
     }else{ //도서가 없는 경우
       const sql='insert into books(title, authors, price, publisher, image, contents, isbn) values(?, ?, ?, ?, ?, ?, ?)';
       db.get().query(sql, [title, authors, price, publisher, image, contents, isbn], function(err, rows){
-        if(err) console.log(err);
+        if(err) console.log("book1 : ", err);
         res.send('0');
       });
     }
@@ -52,7 +53,7 @@ router.get('/list.json', function(req, res){
   const query=`%${req.query.query}%`;
   const sql=`select * from books where ${key} like ? order by bid desc limit ?, 5`;
   db.get().query(sql, [query, start], function(err, rows){
-    if(err) console.log(err);
+    if(err) console.log("book2 : ", err);
     res.send(rows);
   });
 });
@@ -68,6 +69,7 @@ router.get('/count', function(req, res){
   const query=`%${req.query.query}%`;
   const sql=`select count(*) total from books where ${key} like ?`;
   db.get().query(sql, [query], function(err, rows){
+    if(err) console.log("book3 : ", err)
     res.send(rows[0]);
   });
 });
@@ -77,7 +79,7 @@ router.post('/delete', function(req, res){
   const bid=req.body.bid;
   const sql='delete from books where bid=?';
   db.get().query(sql, [bid], function(err, rows){
-    if(err) console.log(err);
+    if(err) console.log("book4 : ", err);
     res.sendStatus(200);
   });
 });
@@ -87,7 +89,7 @@ router.get('/read', function(req, res){
   const bid=req.query.bid;
   const sql='select *, format(price, 0) fmtprice, date_format(regdate, "%Y-%m-%d") fmtdate from books where bid=?';
   db.get().query(sql, [bid], function(err, rows){
-    if(err) console.log(err);
+    if(err) console.log("book5 : ", err);
     res.render('index', {title:"도서 정보", pageName:'books/read.ejs', book:rows[0]});
   });
 });
@@ -97,7 +99,7 @@ router.get('/update', function(req, res){
   const bid=req.query.bid;
   const sql='select *, format(price, 0) fmtprice, date_format(regdate, "%Y-%m-%d") fmtdate from books where bid=?';
   db.get().query(sql, [bid], function(err, rows){
-    if(err) console.log(err);
+    if(err) console.log("book6 : ", err);
     res.render('index', {title:'정보수정', pageName:'books/update.ejs', book:rows[0]});
   });
 });
@@ -114,7 +116,7 @@ router.post('/update', function(req,res){
   //console.log(bid, title, price, authors, publisher, date, contents);
   const sql='update books set title=?, price=?, authors=?, publisher=?, regdate=?, contents=? where bid=?';
   db.get().query(sql, [title, price, authors, publisher, date, contents, bid], function(err, rows){
-    if(err) console.log(err);
+    if(err) console.log("book7 : ", err);
     res.redirect('/books/read?bid=' + bid);
   });
 });
@@ -127,10 +129,57 @@ router.post('/upload', upload.single('file'), function(req, res){
     // console.log('file:', req.file.filename, bid);
     const sql='update books set image=? where bid=?';
     db.get().query(sql, [image, bid], function(err, rows){
-      if(err) console.log(err);
+      if(err) console.log("book8 : ", err);
       res.redirect('/books/read?bid=' + bid);
-    })
+    });
   }
 });
+
+//도서 정보 페이지 출력
+router.get('/info', function(req, res){
+  const bid=req.query.bid;
+  const sql=`select *, format(price, 0) fmtprice, date_format(regdate, "%Y-%m-%d") fmtdate from books where bid=?`;
+  db.get().query(sql, [bid], function(err, rows){
+    if(err) console.log("book9 : ", err);
+    res.render('index', {title:'도서 정보', pageName:'books/info.ejs', book:rows[0]});
+  });
+});
+
+//좋아요 추가
+router.post('/like/insert', function(req, res){
+  const uid=req.body.uid;
+  const bid=req.body.bid;
+  const sql=`insert into favorite(uid, bid) values(?, ?);`;
+  db.get().query(sql, [uid, bid], function(err, rows){
+    if(err) console.log("book10 : ", err);
+    res.sendStatus(200);
+  });
+});
+
+//좋아요 취소
+router.get('/like/delete', function(req, res){
+  const uid=req.query.uid;
+  const bid=req.query.bid;
+  const sql=`delete from favorite where bid=? and uid=?;`;
+  db.get().query(sql, [bid, uid], function(err, rows){
+    if(err) console.log("book11 : ", err);
+    res.sendStatus(200);
+  })
+})
+
+//좋아요 체크
+router.get('/like/check', function(req, res){
+  const uid=req.query.uid;
+  const bid=req.query.bid;
+  let sql=`select count(*) fcnt, (select count(*) ucnt from favorite where uid=? and bid=?) ucnt `;
+  sql+=`from favorite where bid=?`;
+  db.get().query(sql, [uid, bid, bid], function(err, rows){
+    if(err) console.log("book12 : ", err);
+    res.send(rows[0]);
+  });
+});
+
+//이미지 초기화
+router.get
 
 module.exports = router;

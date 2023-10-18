@@ -31,7 +31,7 @@
                 <td>{{title}}</td>
                 <td>{{fmtPrice price}}</td>
                 <td>{{authors}}</td>
-                <td><button class="btn" style="background-color:#6f42c1; color:#fff;" book="{{toString @this}}">도서저장</button></td>
+                <td><button class="btn btn-sm" style="background-color:#6f42c1; color:#fff;" book="{{toString @this}}">도서저장</button></td>
             </tr>
             <%-include("modal.ejs")%>
         {{/each}}

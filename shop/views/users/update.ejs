@@ -23,6 +23,7 @@
             <img class="photo" id="photo" src="http://via.placeholder.com/150x150" width="200">
             <input type="file" name="file" class="form-control mt-2">
             <input name="photo" value="<%=user.photo%>" type="hidden">
+            <button class="btn" style="background-color:#6f42c1; color:#fff;" id="reset">이미지 초기화</button>
         </div>
         <div class="text-center my-3">
             <button class="btn" style="background-color:#6f42c1; color:#fff;">수정</button>
@@ -38,6 +39,10 @@
     }else{
         $("#photo").attr("src", "http://via.placeholder.com/150x150");
     }
+    //이미지 초기화
+    $("#reset").on("click", function(){
+        $.ajax({});
+    });
     //수정버튼을 눌렀을 때
     $(frm).on("submit", function(e){
         e.preventDefault();

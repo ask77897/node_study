@@ -43,7 +43,12 @@
                         alert("비밀번호가 틀렸습니다.");
                     }else{
                         sessionStorage.setItem('uid', uid);
-                        location.href="/";
+                        const target=sessionStorage.getItem('target');
+                        if(target){
+                            location.href=target;
+                        }else{
+                            location.href="/";
+                        }
                     }
                 }
             })

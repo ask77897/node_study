@@ -1,0 +1,116 @@
+<style>
+    #like{
+        color: #6f42c1;
+        cursor: pointer;
+        font-size: 1.5rem;
+    }
+    #count{
+        font-size: 0.7rem;
+    }
+    .nav-tabs > .nav-item > .active{
+        color: indigo;
+    }
+    .nav-link{
+        color: #6e42c183;
+    }
+    .nav-link:hover{
+        color:#6f42c1;
+    }
+    .active{
+        color: indigo;
+    }
+</style>
+<div class="my-5">
+    <h1 class="text-center">도서 정보</h1>
+    <div class="row">
+        <div class="col-lg-4 mb-3">
+            <img src="<%=book.image%>" width="90%">
+        </div>
+        <div class="col">
+            <h5 id="title">
+                [<%=book.bid%>] <%=book.title%>
+                <i class="bi bi-bookmark-heart ms-2" id="like">
+                    <span id="count">0</span>
+                </i>
+            </h5>
+            <hr>
+            <div class="my-3">저자 : <%=book.authors%></div>
+            <div class="my-3">가격 : <%=book.fmtprice%> 원</div>
+            <div class="my-3">등록일 : <%=book.fmtdate%></div>
+            <div class="my-3">출판사 : <%=book.publisher%></div>
+            <div class="my-3">ISBN : <%=book.isbn%></div>
+            <hr>
+            <button class="btn px-5" style="background-color:#6f42c1; color:#fff;">장바구니</button>
+            <button class="btn px-5" style="background-color:#42bbc1; color:#fff;">바로구매</button>
+        </div>
+    </div>
+    <ul class="nav nav-tabs my-5" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">도서내용</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab" aria-controls="profile-tab-pane" aria-selected="false">도서리뷰</button>
+        </li>
+      </ul>
+     <div class="tab-content mx-5" id="myTabContent">
+        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
+            <div class="px-2"><%=book.contents%></div>
+        </div>
+        <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+            <%-include("review.ejs")%>
+        </div>
+    </div>
+</div>
+<script>
+    const bid='<%=book.bid%>'
+    getCheck();
+    //빈하트 클릭
+    $("#title").on("click", ".bi-bookmark-heart", function(){
+        //alert('..')
+        if(!sessionStorage.getItem("uid")){
+            sessionStorage.setItem("target", "/books/info?bid=<%=book.bid%>");
+            location.href="/users/login"
+        }else{
+            $.ajax({
+                type:'post',
+                url:'/books/like/insert',
+                data:{uid:sessionStorage.getItem("uid"), bid},
+                success:function(){
+                    alert("좋아요 추가");
+                    getCheck();
+                }
+            });
+        }
+    });
+    //채워진 하트 클릭
+    $("#title").on("click", ".bi-bookmark-heart-fill", function(){
+        //alert("..")
+        $.ajax({
+            type:'get',
+            url:'/books/like/delete',
+            data:{uid:sessionStorage.getItem("uid"), bid},
+            success:function(){
+                alert("좋아요 취소");
+                getCheck();
+            }
+        });
+    });
+    //좋아요 체크
+    function getCheck(){
+        $.ajax({
+            type:'get',
+            url:'/books/like/check',
+            data:{uid:sessionStorage.getItem("uid"), bid},
+            success:function(data){
+                $("#count").html(data.fcnt);
+                if(data.ucnt==1){
+                    $("#like").removeClass("bi-bookmark-heart");
+                    $("#like").addClass("bi-bookmark-heart-fill");
+                }else{
+                    $("#like").removeClass("bi-bookmark-heart-fill");
+                    $("#like").addClass("bi-bookmark-heart");
+                }
+            }
+        })
+    }
+</script>

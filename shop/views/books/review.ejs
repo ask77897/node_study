@@ -1,0 +1,123 @@
+<style>
+    .page-link{
+        color: #6f42c1;
+    }
+    .page-link:hover{
+        color: #6e42c1b8;
+    }
+    .page-item.active .page-link{
+        color:#fff;
+        background-color: #6f42c1;
+        border-color: #6e42c1b8;
+    }
+</style>
+<div class="my-5">
+    <h1 class="text-center">리뷰목록</h1>
+    <button id="btn_review" class="btn w-100 my-5" style="background-color:#6f42c1; color:#fff;">리뷰작성</button>
+    <div id="div_write" style="display: none;">
+        <textarea id="contents" class="form-control" rows="5" placeholder="내용을 입력하세요."></textarea>
+        <div class="text-end mt-2 mb-5">
+            <button id="btn_save" class="btn btn-sm px-5" style="background-color:#6f42c1; color:#fff;">등록</button>
+        </div>
+    </div>
+    <div id="div_review"></div>
+    <div id="pagination" class="pagination justify-content-center mt-5"></div>
+</div>
+<script id="temp_review" type="x-handlebars-template">
+    {{#each .}}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="ellipsis2 contents" style="cursor:pointer">[{{rid}}] {{contents}}</div>
+            </div>
+            <div class="card-footer text-end">
+                Created by {{uid}} on {{revdate}}
+            </div>
+        </div>
+    {{/each}}
+</script>
+<script>
+    let page=1;
+    getTotal();
+    //리뷰입력창
+    if(sessionStorage.getItem('uid')){
+        $("#btn_review, #div_write").toggle();
+    }
+    //리뷰작성 버튼을 클릭했을 때
+    $("#btn_review").on("click", function(){
+        alert("로그인 후 이용해주세요.");
+        sessionStorage.setItem("target", "/books/info?bid=<%=book.bid%>");
+        location.href="/users/login";
+    })
+    //리뷰등록 할 때
+    $("#btn_save").on("click", function(){
+        const contents=$("#contents").val();
+        if(contents==""){
+            alert("내용을 입력해주세요.");
+            $("#contents").focus();
+            return;
+        }
+        $.ajax({
+            type:'post',
+            url:'/review/insert',
+            data:{bid:"<%=book.bid%>", uid:sessionStorage.getItem('uid'), contents:contents},
+            success:function(data){
+                getTotal();
+                $("#contents").val("");
+            }
+        })
+    })
+    //리뷰를 눌렀을 때
+    $("#div_review").on("click", ".contents", function(){
+        $(this).toggleClass("ellipsis2");
+    });
+
+    function getReview(){
+        $.ajax({
+            type:'get',
+            url:'/review/list.json',
+            data:{bid:"<%=book.bid%>", page},
+            success:function(data){
+                //console.log(data);
+                const temp=Handlebars.compile($("#temp_review").html());
+                $("#div_review").html(temp(data));
+            }
+        });
+    }
+    function getTotal(){
+        $.ajax({
+            type:'get',
+            url:'/review/count',
+            data:{bid:'<%=book.bid%>'},
+            success:function(data){
+                //alert(data.total);
+                //alert(totalPages);
+                if(data <= 5){
+                    $("#pagination").hide();
+                    getReview();
+                }else{
+                    $("#pagination").show();
+                    const totalPages=Math.ceil(data/5);
+                    $("#pagination").twbsPagination("changeTotalPages", totalPages, page)
+                }
+            }
+        })
+    }
+    $('#pagination').twbsPagination({
+        totalPages: 10, //총 페이지 번호 수
+        visiblePages: 5, // 하단에서 한 번에 보여 지는 페이지 번호 수
+        startPage : 1, // 시작 시 표시되는 현재 페이지
+        initiateStartPageClick: false, // 플러그인이 시작 시 페이지 버튼 클릭 여부 (default : true)
+        first : '<i class="bi bi-chevron-double-left"></i>', // 페이지네이션 버튼 중 처음으로 돌아가는 버튼에 쓰여 있는 텍스트
+        prev : '<i class="bi bi-chevron-left"></i>', // 이전 페이지 버튼에 쓰여 있는 텍스트
+        next : '<i class="bi bi-chevron-right"></i>', // 다음 페이지 버튼에 쓰여 있는 텍스트
+        last : '<i class="bi bi-chevron-double-right"></i>', // 페이지네이션 버튼 중 마지막으로 가는 버튼에 쓰여 있는 텍스트
+        pageClass : "page-item",	// 페이지 버튼의 CSS class
+        activeClass : "active",	// 클릭된 페이지 버튼의 CSS class
+        disabledClass : "disabled",	// 클릭 안된 페이지 버튼의 CSS class
+        anchorClass : "page-link",	//버튼 안의 앵커에 대한 CSS class
+        onPageClick: function (event, clickPage) {
+            page=clickPage;
+            getReview(); 
+        }
+    });
+</script>
