@@ -40,7 +40,7 @@
             <div class="my-3">출판사 : <%=book.publisher%></div>
             <div class="my-3">ISBN : <%=book.isbn%></div>
             <hr>
-            <button class="btn px-5" style="background-color:#6f42c1; color:#fff;">장바구니</button>
+            <button id="btn_cart" class="btn px-5" style="background-color:#6f42c1; color:#fff;">장바구니</button>
             <button class="btn px-5" style="background-color:#42bbc1; color:#fff;">바로구매</button>
         </div>
     </div>
@@ -113,4 +113,26 @@
             }
         })
     }
+    //장바구니 버튼을 눌렀을 때
+    $("#btn_cart").on("click", function(){
+        if(!sessionStorage.getItem("uid")){
+            alert("로그인 후 이용해주세요.")
+            sessionStorage.setItem("target", '/books/info?bid=<%=book.bid%>');
+            location.href="/users/login";
+        }else{
+            $.ajax({
+                type:'post',
+                url:'/cart/insert',
+                data:{uid:sessionStorage.getItem("uid"), bid:"<%=book.bid%>"},
+                success:function(data){
+                    if(data==0){
+                        alert("장바구니에 등록되었습니다.");
+                    }else{
+                        alert("장바구니에 존재하는 상품입니다.");
+                    }
+                    //if(confirm("장바구니로 이동하시겠습니까?")) location.href="/cart/list";
+                }
+            })
+        }
+    })
 </script>

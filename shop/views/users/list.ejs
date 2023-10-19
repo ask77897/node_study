@@ -22,7 +22,7 @@
 <script>
     Handlebars.registerHelper("isImage", function(photo){
         if(photo) return "/upload/photo/" + photo;
-        else "http://via.placeholder.com/150x150";
+        else return "http://via.placeholder.com/150x150";
     })
 </script>
 <script>

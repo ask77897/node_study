@@ -23,6 +23,14 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  cursor: pointer;
+}
+.qnt{
+  border: 1px solid #eeeeee;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  padding: 5px;
+  text-align: right;
 }
 
 form span{
@@ -30,7 +38,7 @@ form span{
   justify-content: center;
 }
 
-.photo {border-radius: 50%; border: 2px solid gray;}
+.photo {border-radius: 50%; border: 1px solid gray;}
 
 .like{
   color: #6f42c1;

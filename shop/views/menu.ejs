@@ -29,6 +29,9 @@
             <li class="nav-item" style="display:none;" id="mypage">
                 <a class="nav-link active" aria-current="page" href="/users/mypage">uid</a>
             </li>
+            <li class="nav-item" style="display:none;" id="cart">
+                <a class="nav-link active" aria-current="page" href="/cart/list"><i class="bi bi-cart"></i></a>
+            </li>
             <li class="nav-item" style="display:none;" id="logout">
                 <a class="nav-link active" aria-current="page" href="/users/logout">LOGOUT</a>
             </li>
@@ -37,9 +40,10 @@
     </div>
 </nav>
 <script>
+    const uid=sessionStorage.getItem("uid");
     if(sessionStorage.getItem("uid")){
-        $("#login, #logout, #mypage").toggle();
-        $("#mypage a").html(sessionStorage.getItem("uid"));
+        $("#login, #logout, #mypage, #cart").toggle();
+        $("#mypage a").html(uid + '<i class="bi bi-person-check"></i>');
     }
     $("#logout").on("click", "a", function(e){
         e.preventDefault();

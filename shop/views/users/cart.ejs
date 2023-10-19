@@ -1,0 +1,148 @@
+<style>
+    .bi-trash{
+        cursor:pointer;
+        font-size: 1.5rem;
+    }
+</style>
+<div class="my-5">
+    <h1 class="text-center mb-5">장바구니</h1>
+    <div id="div_cart"></div>
+</div>
+<script id="temp_cart" type="x-handlebars-template">
+    <div class="row">
+        <div class="col ms-2">
+            <input id="all" type="checkbox">
+            <span class="ms-3">전체선택</span>
+        </div>
+        <div class="col text-end mb-2">
+            <button class="btn btn-sm btn-danger btn_delete">선택상품삭제<i class="bi bi-trash-fill"></i></button>
+        </div>
+    </div>
+    <table class="table">
+        <tr class="text-center table-light">
+            <th colspan=4>상품명</th>
+            <th>가격</th>
+            <th>수량</th>
+            <th>합계</th>
+            <th>삭제</th>
+        </tr>
+        {{#each .}}
+            <tr>
+                <td><input cid="{{cid}}" class="chk" type="checkbox"></td>
+                <td>{{bid}}</td>
+                <td><img src="{{image}}" width="50px"></td>
+                <td>{{title}}</td>
+                <td>{{fmtprice}}원</td>
+                <td>
+                    <input value="{{qnt}}" size="3" class="qnt" oninput="isNumber(this)">
+                    <button cid="{{cid}}" class="btn btn-sm btn_update" style="background-color:#6f42c1; color:#fff;">변경</button>
+                </td>
+                <td>{{fmtsum}}</td>
+                <td><i class="bi bi-trash" cid="{{cid}}"></i></td>
+            </tr>
+        {{/each}}
+        <tr>
+            <td colspan="8" class="text-end">
+                총 상품금액 : <span id="total">0</span>
+            </td>
+        </tr>
+    </table>
+</script>
+<script>
+    getCart();
+    function getCart(){
+        $.ajax({
+            type:'get',
+            url:'/cart/list.json',
+            data:{uid:sessionStorage.getItem("uid")},
+            success:function(data){
+                //console.log(data);
+                const temp=Handlebars.compile($("#temp_cart").html());
+                $("#div_cart").html(temp(data));
+
+                let sum=0;
+                data.forEach(item=>{
+                    sum+=item.sum;
+                });
+                $("#total").html(sum.toString().replace(/\B(?=(\d{3})+(?!\d))/g,",") + "원");
+            }
+        });
+    }
+    function isNumber(item){ //숫자만 입력 가능하게
+        item.value=item.value.replace(/[^0-9]/g,'');
+    }
+    //삭제 아이콘을 눌렀을 때
+    $("#div_cart").on("click", ".bi-trash", function(){
+        //alert('..')
+        const cid=$(this).attr("cid");
+        if(confirm("삭제 하시겠습니까?")){
+            $.ajax({
+                type:'post',
+                url:'/cart/delete',
+                data:{cid},
+                success:function(){
+                    getCart();
+                }
+            })
+        }
+    });
+    //수량 변경
+    $("#div_cart").on("click", ".btn_update", function(){
+        const cid=$(this).attr("cid");
+        const qnt=$(this).parent().find('.qnt').val();
+        if(qnt==""){
+            //alert("수량을 입력하세요.");
+            $(this).parent().find(".qnt").val("1");
+            $(this).parent().find(".qnt").focus();
+            return;
+        }
+        if(confirm(`수량을 ${qnt}권으로 변경하시겠습니까?`)){
+            $.ajax({
+                type:'post',
+                url:'/cart/update',
+                data:{cid, qnt},
+                success:function(){
+                    getCart();
+                }
+            });
+        }
+        //alert(`${cid}, ${qnt}`);
+    });
+    //전체선택 버튼 활성화
+    $("#div_cart").on("click", "#all", function(){
+        if($(this).is(":checked")){
+            $("#div_cart .chk").prop("checked", true);
+        }else{
+            $("#div_cart .chk").prop("checked", false);
+        }
+    });
+    //각행의 체크박스를 클릭한 경우
+    $("#div_cart").on("click", ".chk", function(){
+        const all=$("#div_cart .chk").length;
+        const chk=$("#div_cart .chk:checked").length;
+        if(all==chk){
+            $("#div_cart #all").prop("checked", true);
+        }else{
+            $("#div_cart #all").prop("checked", false);
+        }
+    });
+    //전체선택삭제 눌렀을 때
+    $("#div_cart").on("click", ".btn_delete", function(){
+        const chk=$("#div_cart .chk:checked").length;
+        if(chk==0){
+            alert("삭제할 상품을 하나 이상 선택해주세요.");
+            return;
+        }
+        $("#div_cart .chk:checked").each(function(){
+            const cid=$(this).attr("cid");
+            //alert(cid);
+            $.ajax({
+                type:'post',
+                url:'/cart/delete',
+                data:{cid},
+                success:function(){}
+            });
+            getCart();
+        });
+    });
+</script>
