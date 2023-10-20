@@ -7,6 +7,9 @@
 <div class="my-5">
     <h1 class="text-center mb-5">장바구니</h1>
     <div id="div_cart"></div>
+    <div class="text-center mt-5">
+        <button id="btn_order" class="btn px-5" style="background-color:#6f42c1; color:#fff;">주문하기</button>
+    </div>
 </div>
 <script id="temp_cart" type="x-handlebars-template">
     <div class="row">
@@ -29,7 +32,7 @@
         {{#each .}}
             <tr>
                 <td><input cid="{{cid}}" class="chk" type="checkbox"></td>
-                <td>{{bid}}</td>
+                <td>{{cid}}-{{bid}}</td>
                 <td><img src="{{image}}" width="50px"></td>
                 <td>{{title}}</td>
                 <td>{{fmtprice}}원</td>
@@ -144,5 +147,20 @@
             });
             getCart();
         });
+    });
+    //주문하기 버튼을 눌렀을 때
+    $("#btn_order").on("click", function(){
+        //alert("..")
+        const cnt=$("#div_cart .chk:checked").length;
+        if(cnt==0){
+            alert("주문할 도서를 선택해주세요.");
+        }else{
+            let cart=[];
+            $("#div_cart .chk:checked").each(function(){
+                const cid=$(this).attr("cid");
+                cart.push(cid);
+            });
+            location.href="/order/insert?cart="+cart.join();
+        }
     });
 </script>
