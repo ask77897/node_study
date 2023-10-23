@@ -8,7 +8,7 @@
 <script id="temp_order" type="x-handlebars-template">
     <table class="table table-light">
         {{#each order}}
-            <tr>
+            <tr class="book" book="{{toString @this}}">
                 <td><img src="{{image}}" width="30"></td>
                 <td>{{title}}</td>
                 <td>{{fmtprice}}원</td>
@@ -18,7 +18,7 @@
         {{/each}}
         <tr>
             <td colspan="5" class="text-end py-3 pe-5">
-                총 상품금액 : <span id="total">0</span>
+                총 상품금액 : <span id="total">0원</span>
             </td>
         </tr>
     </table>
@@ -35,12 +35,17 @@
         </div>
         <div class="input-group mb-1">
             <span class="input-group-text">주소</span>
-            <input id="raddress1" class="form-control" value="{{user.address1}}">
-            <button class="btn" id="search" style="background-color:#6f42c1; color:#fff;">주소검색</button>
+            <input id="raddress1" name="address1" class="form-control" value="{{user.address1}}">
+            <button class="btn" name="search" style="background-color:#6f42c1; color:#fff;">주소검색</button>
         </div>
         <input id="raddress2" class="form-control" value="{{user.address2}}">
         <input id="sum1" type="hidden">
     </div>
+</script>
+<script>
+    Handlebars.registerHelper("toString", function(book){
+        return JSON.stringify(book);
+    })
 </script>
 <script>
     const cart="<%=cart%>";
@@ -80,20 +85,31 @@
                 url:'/order/purchase/insert',
                 data:{uid, rname, rphone, raddress1, raddress2, sum},
                 success:function(pid){
-                    alert(pid);
+                    //alert(pid);
                     //주문상품등록
+                    $("#div_order .book").each(async function(){
+                        const book=JSON.parse($(this).attr("book"));
+                        //console.log(book);
+                        await $.ajax({
+                            type:'post',
+                            url:'/order/book/insert',
+                            data:{...book, pid}
+                        });
+                    });
+                    alert("주문이 완료되었습니다.");
+                    location.href="/";
                 }
-            })
+            });
         }
-    })
+    });
     //주소검색
-    $("#search").on("click", function(){
+    $("#div_order .search").on("click", function(){
         new daum.Postcode({
             oncomplete:function(data){
                 if(data.buildingName=="") {
-                    $(frm.address1).val(data.address);
+                    $(address1).val(data.address);
                 }else {
-                    $(frm.address1).val(data.address + " " + data.buildingName);
+                    $(address1).val(data.address + " " + data.buildingName);
                 }
             }
         }).open();

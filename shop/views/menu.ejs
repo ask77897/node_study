@@ -9,13 +9,19 @@
             <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="/">Home</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" id="order" style="display: none;">
+                <a class="nav-link active" aria-current="page" href="/order">주문목록</a>
+            </li>
+            <li class="nav-item" id="search" style="display: none;">
                 <a class="nav-link active" aria-current="page" href="/books">도서검색</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" id="users" style="display: none;">
                 <a class="nav-link active" aria-current="page" href="/users">사용자목록</a>
             </li>
-            <li class="nav-item">
+            <li class="nav-item" id="order2" style="display: none;">
+                <a class="nav-link active" aria-current="page" href="/order/admin">주문관리</a>
+            </li>
+            <li class="nav-item" id="books" style="display: none;">
                 <a class="nav-link active" aria-current="page" href="/books/list">도서목록</a>
             </li>
             <li class="nav-item">
@@ -41,9 +47,13 @@
 </nav>
 <script>
     const uid=sessionStorage.getItem("uid");
-    if(sessionStorage.getItem("uid")){
-        $("#login, #logout, #mypage, #cart").toggle();
-        $("#mypage a").html(uid + '<i class="bi bi-person-check"></i>');
+    if(sessionStorage.getItem("uid") && sessionStorage.getItem("uid")!="admin"){ //일반사용자
+        $("#login, #logout, #mypage, #cart, #order").toggle();
+        $("#mypage a").html(uid + '<i class="bi bi-person"></i>');
+    }
+    if(sessionStorage.getItem("uid") && sessionStorage.getItem("uid")=="admin"){ //관리자
+        $("#login, #logout, #mypage, #search, #books, #users, #order2").toggle();
+        $("#mypage a").html(uid + '<i class="bi bi-person-gear"></i>');
     }
     $("#logout").on("click", "a", function(e){
         e.preventDefault();
